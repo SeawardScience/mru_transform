@@ -15,6 +15,7 @@ set(ROS_DEPENDS
   geographic_msgs
   tf2_geometry_msgs
   mru_transform_interfaces
+  std_srvs
   )
 
 set(EXTERNAL_DEPENDS
