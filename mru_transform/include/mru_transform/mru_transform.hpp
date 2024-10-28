@@ -39,10 +39,17 @@ private:
           return true;
         }
         else{
-          double age = (msg_age.nanoseconds() / 1.0e9) - (msg_age.nanoseconds() / 1.0e9);
-          RCLCPP_WARN(node_ptr_->get_logger(),
-                      "time from sensor %s received out of order",
-                      s->name().c_str() );
+          double age = msg_age.nanoseconds() / 1.0e9 + msg_age.seconds();
+          auto clock = node_ptr_->get_clock();
+
+          RCLCPP_WARN_THROTTLE(
+              node_ptr_->get_logger(),          // Logger from the node
+              *clock,                           // Clock instance for throttling
+              5000,                             // Throttle duration in milliseconds (5 seconds)
+              "Time from sensor %s received out of order. Age: %.9f seconds",  // Warning message
+              s->name().c_str(),                // Sensor name
+              age                               // Age value
+              );
         }
       }else{
         double age = msg_age.nanoseconds() / 1.0e9;
