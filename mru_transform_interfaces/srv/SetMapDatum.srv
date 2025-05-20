@@ -1,0 +1,3 @@
+geographic_msgs/GeoPointStamped wgs84_origin
+---
+geometry_msgs/PointStamped ecef_origin

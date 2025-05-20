@@ -9,6 +9,7 @@
 #include <mru_transform/map_frame.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <std_srvs/srv/trigger.hpp> // Include the Trigger service header
+#include <mru_transform_interfaces/srv/set_map_datum.hpp>
 
 
 namespace mru_transform
@@ -62,6 +63,9 @@ private:
   void resetMapFrameService(const std_srvs::srv::Trigger::Request::SharedPtr request,
                             std_srvs::srv::Trigger::Response::SharedPtr response);
 
+  void setMapDatumService(const mru_transform_interfaces::srv::SetMapDatum::Request::SharedPtr request,
+                            mru_transform_interfaces::srv::SetMapDatum::Response::SharedPtr response);
+
 
   // list of sensors, in order of priority
   std::vector<std::shared_ptr<PositionSensor> > position_sensors_;
@@ -89,6 +93,7 @@ private:
 
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr reset_map_frame_service_;
+  rclcpp::Service<mru_transform_interfaces::srv::SetMapDatum>::SharedPtr set_map_datum_service_;
 
 };
 

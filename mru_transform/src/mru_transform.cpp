@@ -72,6 +72,10 @@ MRUTransform::MRUTransform(rclcpp::Node::SharedPtr node_ptr)
   reset_map_frame_service_ = node_ptr_->create_service<std_srvs::srv::Trigger>(
       "reset_map_frame",
       std::bind(&MRUTransform::resetMapFrameService, this, std::placeholders::_1, std::placeholders::_2));
+
+  set_map_datum_service_ = node_ptr_->create_service<mru_transform_interfaces::srv::SetMapDatum>(
+      "set_map_datum",
+      std::bind(&MRUTransform::setMapDatumService, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void MRUTransform::updatePosition(const rclcpp::Time &now)
@@ -158,6 +162,8 @@ void MRUTransform::updateVelocity(const rclcpp::Time &now)
   }
 }
 
+
+
 void MRUTransform::resetMapFrameService(const std_srvs::srv::Trigger::Request::SharedPtr request,
                                         std_srvs::srv::Trigger::Response::SharedPtr response)
 {
@@ -165,6 +171,16 @@ void MRUTransform::resetMapFrameService(const std_srvs::srv::Trigger::Request::S
   mapFrame_.reset();
   response->success = true;
   response->message = "Map frame has been reset";
+}
+
+void MRUTransform::setMapDatumService(const mru_transform_interfaces::srv::SetMapDatum::Request::SharedPtr request,
+                        mru_transform_interfaces::srv::SetMapDatum::Response::SharedPtr response){
+  mapFrame_.reset();
+  p11::LatLongDegrees map_origin;
+  map_origin.latitude() = request->wgs84_origin.position.latitude;
+  map_origin.longitude() = request->wgs84_origin.position.longitude;
+  map_origin.altitude() = 0.0;
+  mapFrame_ = std::shared_ptr<MapFrame>(new MapFrame(node_ptr_, map_origin, map_frame_, odom_frame_));
 }
 
 } // namespace mru_transform

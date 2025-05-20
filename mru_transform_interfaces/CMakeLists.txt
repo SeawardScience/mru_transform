@@ -14,7 +14,8 @@ set(MSG_FILES
   srv/EarthToLatLong.srv
   srv/LatLongToEarth.srv
   srv/LatLongToMap.srv
-  srv/MapToLatLong.srv)
+  srv/MapToLatLong.srv
+  srv/SetMapDatum.srv)
 
 rosidl_generate_interfaces(
     ${PROJECT_NAME}
