@@ -9,7 +9,8 @@
 #include <mru_transform/map_frame.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <std_srvs/srv/trigger.hpp> // Include the Trigger service header
-#include <mru_transform_interfaces/srv/set_map_datum.hpp>
+// #include <mru_transform_interfaces/srv/set_map_datum.hpp>
+#include <geographic_msgs/msg/geo_point.hpp>
 
 
 namespace mru_transform
@@ -60,11 +61,13 @@ private:
     return false;
   }
 
+  void mapDatumCallback(const geographic_msgs::msg::GeoPoint msg);
+
   void resetMapFrameService(const std_srvs::srv::Trigger::Request::SharedPtr request,
                             std_srvs::srv::Trigger::Response::SharedPtr response);
 
-  void setMapDatumService(const mru_transform_interfaces::srv::SetMapDatum::Request::SharedPtr request,
-                            mru_transform_interfaces::srv::SetMapDatum::Response::SharedPtr response);
+  // void setMapDatumService(const mru_transform_interfaces::srv::SetMapDatum::Request::SharedPtr request,
+  //                           mru_transform_interfaces::srv::SetMapDatum::Response::SharedPtr response);
 
 
   // list of sensors, in order of priority
@@ -93,8 +96,9 @@ private:
 
   rclcpp::Node::SharedPtr node_ptr_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr reset_map_frame_service_;
-  rclcpp::Service<mru_transform_interfaces::srv::SetMapDatum>::SharedPtr set_map_datum_service_;
+  // rclcpp::Service<mru_transform_interfaces::srv::SetMapDatum>::SharedPtr set_map_datum_service_;
 
+  rclcpp::Subscription<geographic_msgs::msg::GeoPoint>::SharedPtr map_datum_sub_;
 };
 
 } // namespace mru_transform
