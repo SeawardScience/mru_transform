@@ -7,7 +7,7 @@ template <>
 const std::string SensorBase<PositionSensor>::sensor_type("position");
 
 PositionSensor::PositionSensor(std::function<void(const rclcpp::Time&)> update_callback)
-:BaseType(update_callback)
+    :BaseType(update_callback)
 {
 }
 
@@ -18,24 +18,25 @@ PositionSensor::PositionSensor(rclcpp::Node::SharedPtr node, std::string name, s
 
 bool PositionSensor::subscribe(const std::string &topic, const std::string &topic_type)
 {
+  auto qos = rclcpp::QoS(1).best_effort().durability_volatile();
   if(topic_type == "sensor_msgs/msg/NavSatFix")
   {
     subs_.navsat_fix = node_ptr_->create_subscription<sensor_msgs::msg::NavSatFix>(
-        topic_, 5, std::bind(&PositionSensor::navSatFixCallback, this, _1));
+        topic_, qos, std::bind(&PositionSensor::navSatFixCallback, this, _1));
     return true;
   }
   if(topic_type == "geographic_msgs/msg/GeoPoseStamped")
   {
     subs_.geo_pose_stamped = node_ptr_->create_subscription<geographic_msgs::msg::GeoPoseStamped>(
-        topic_, 5, std::bind(&PositionSensor::geoPoseCallback, this, _1));
+        topic_, qos, std::bind(&PositionSensor::geoPoseCallback, this, _1));
     return true;
   }
   RCLCPP_WARN_THROTTLE(
-    node_ptr_->get_logger(),
-    *node_ptr_->get_clock(),
-    30 * 1000,  // Throttle interval in milliseconds
-    "Supported position types: sensor_msgs/NavSatFix, geographic_msgs/GeoPoseStamped"
-    );
+      node_ptr_->get_logger(),
+      *node_ptr_->get_clock(),
+      30 * 1000,
+      "Supported position types: sensor_msgs/NavSatFix, geographic_msgs/GeoPoseStamped"
+      );
   return false;
 }
 
