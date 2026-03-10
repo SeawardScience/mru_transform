@@ -72,41 +72,37 @@ protected:
   }
   void subscribeCheck()
   {
-    //auto topic_type = getROSType(nh.resolveName(topic_));
-    //auto topic_types = node_ptr_->get_topic_names_and_types()[topic_];
-
     auto topic = resolve_topic_name(topic_);
-
     auto topic_type = node_ptr_->get_topic_names_and_types()[topic];
 
-    if(topic_type.empty()){
-      std::stringstream msg;
-      msg << "Unknown " << T::sensor_type << " topic type for: " << topic;
+    if(!topic_type.empty() && static_cast<T*>(this)->subscribe(topic_, topic_type[0]))
+    {
+      RCLCPP_INFO(node_ptr_->get_logger(),
+                  "Subscribed to %s topic: %s [%s]",
+                  T::sensor_type.c_str(), topic.c_str(), topic_.c_str());
+      // Success — kill the retry timer
+      if(subscribe_check_timer_)
+      {
+        subscribe_check_timer_->cancel();
+        subscribe_check_timer_.reset();
+      }
+      return;
+    }
 
-      RCLCPP_WARN_THROTTLE(
-          node_ptr_->get_logger(),
-          *node_ptr_->get_clock(),
-          30 * 1000,  // Throttle interval in milliseconds
-          msg.str().c_str()
-          );
-    }
-    else if (!static_cast<T*>(this)->subscribe(topic_, topic_type[0])){
-      std::stringstream msg;
-      msg <<"Unsupported " << T::sensor_type << " topic type for: " << topic_ << ", type: " << topic_type[0];
-      RCLCPP_WARN_THROTTLE(
-          node_ptr_->get_logger(),
-          *node_ptr_->get_clock(),
-          30 * 1000,  // Throttle interval in milliseconds
-          msg.str().c_str()
-          );
-    }
-      //ROS_WARN_STREAM_THROTTLE(30.0,"Unsupported " << T::sensor_type << " topic type for: " << topic_ << ", type: " << topic_type);
+    // Log why we're retrying
+    if(topic_type.empty())
+      RCLCPP_WARN_THROTTLE(node_ptr_->get_logger(), *node_ptr_->get_clock(), 30000,
+                           "Waiting for %s topic: %s", T::sensor_type.c_str(), topic.c_str());
     else
-      return; // subscribed, so bail out before setting a new timer
+      RCLCPP_WARN_THROTTLE(node_ptr_->get_logger(), *node_ptr_->get_clock(), 30000,
+                           "Unsupported %s topic type: %s", T::sensor_type.c_str(), topic_type[0].c_str());
 
-    //subscribe_check_timer_ = nh.createTimer(ros::Duration(1.0), std::bind(&SensorBase<T>::subscribeCheckCallback, this, std::placeholders::_1) , true);
-    subscribe_check_timer_ = node_ptr_->create_wall_timer(
-        1000ms, std::bind(&SensorBase<T>::subscribeCheckCallback, this));
+    // Only create a new timer if one isn't already pending
+    if(!subscribe_check_timer_ || subscribe_check_timer_->is_canceled())
+    {
+      subscribe_check_timer_ = node_ptr_->create_wall_timer(
+          1000ms, std::bind(&SensorBase<T>::subscribeCheckCallback, this));
+    }
   }
   rclcpp::Node::SharedPtr node_ptr_;
   //rclcpp::GenericSubscription::SharedPtr subscriber_;
